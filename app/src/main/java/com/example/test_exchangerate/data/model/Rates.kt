@@ -1,5 +1,7 @@
 package com.example.test_exchangerate.data.model
 
 data class Rates(
-    val rate: Double
+    val rates : LinkedHashMap<String, Double>,
+    val timestamp: Long,
+    val lastRequestTS: Long
 )

@@ -1,4 +1,4 @@
-package com.example.test_exchangerate
+package com.example.test_exchangerate.retrofit
 
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit

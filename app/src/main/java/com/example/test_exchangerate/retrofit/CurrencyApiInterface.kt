@@ -1,8 +1,5 @@
-package com.example.test_exchangerate.ui.interfaces
+package com.example.test_exchangerate.retrofit
 
-import com.example.test_exchangerate.data.model.CurrencyRate
-import com.example.test_exchangerate.data.model.CurrencyRatesTimeSeries
-import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query

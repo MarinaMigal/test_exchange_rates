@@ -1,15 +1,13 @@
 package com.example.test_exchangerate
 
-import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.RequiresApi
-import com.example.test_exchangerate.ui.interfaces.CurrencyApiInterface
+import com.example.test_exchangerate.retrofit.CurrencyApiInterface
 import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,12 +20,11 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
 import com.github.mikephil.charting.components.XAxis
 import android.graphics.DashPathEffect
-import com.github.mikephil.charting.animation.Easing
 import androidx.core.content.ContextCompat
 
-import android.graphics.drawable.Drawable
 import android.widget.TextView
 import android.widget.Toast
+import com.example.test_exchangerate.retrofit.ApiClient
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.Utils
 

@@ -7,19 +7,21 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+
+import com.example.test_exchangerate.data.model.Rates
+import com.example.test_exchangerate.retrofit.ApiClient
 import com.example.test_exchangerate.ui.adapters.CurrencyRecyclerAdapter
-import com.example.test_exchangerate.ui.interfaces.CurrencyApiInterface
+import com.example.test_exchangerate.retrofit.CurrencyApiInterface
+import com.example.test_exchangerate.room.CacheMapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.example.test_exchangerate.db.CurrencyRatesDB
-import com.example.test_exchangerate.db.CurrencyRoomDatabase
-import com.example.test_exchangerate.ui.adapters.CurrencyDBRecyclerAdapter
+import com.example.test_exchangerate.room.CurrencyRatesCacheEntity
+import com.example.test_exchangerate.room.CurrencyRoomDatabase
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
@@ -43,61 +45,60 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             if(currencyDb.currencyRatesDao().getCurrencyRates().isNullOrEmpty() )
             {
-                apiCall(currencyRecyclerView,currencyDb)
+                cacheNetworkData(currencyRecyclerView,currencyDb)
             }else {
                 val lastTimestamp = currencyDb.currencyRatesDao().getLastTimestamp()
-                Log.d("MainActivity", "onCreate: $lastTimestamp")
                 val currentTS = Instant.now().epochSecond
                 val diffTime: Long = (currentTS - lastTimestamp) / 60
+                Log.d("MainActivity", "onCreate: $lastTimestamp")
                 if (diffTime < 10) {
-                    val ratesDB = currencyDb.currencyRatesDao().getCurrencyRates()
+                    val cachedRates = currencyDb.currencyRatesDao().getCurrencyRates()
+                    val cacheMapper : CacheMapper = CacheMapper()
+                    val rates = cacheMapper.mapFromEntityList(cachedRates)
                     withContext(Dispatchers.Main) {
                         currencyRecyclerView.apply {
                             layoutManager = LinearLayoutManager(this@MainActivity)
-                            adapter = CurrencyDBRecyclerAdapter(ratesDB)
+                            adapter = CurrencyRecyclerAdapter(rates)
                         }
                     }
-                    Log.d("MainActivity", "onCreate: $currentTS from db")
-                }else apiCall(currencyRecyclerView,currencyDb)
+                    Log.d("MainActivity", "onCreate: $currentTS from room")
+                }else cacheNetworkData(currencyRecyclerView,currencyDb)
             }
 
         }
 
-        }
-
+     }
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun apiCall(currencyRecyclerView:RecyclerView, currencyDb:CurrencyRoomDatabase){
-        val request = ApiClient.buildService(CurrencyApiInterface::class.java)
-        val response = request.getLatestRates(API_KEY, BASE)
-        if (response.isSuccessful) {
-            withContext(Dispatchers.Main) {
-                currencyRecyclerView.apply {
-                    layoutManager = LinearLayoutManager(this@MainActivity)
-                    adapter = CurrencyRecyclerAdapter(response.body()!!)
-                }
-            }
-            var currencyRate: CurrencyRatesDB
+    suspend fun cacheNetworkData(currencyRecyclerView:RecyclerView, currencyDb:CurrencyRoomDatabase) {
+        val retrofit = ApiClient.buildService(CurrencyApiInterface::class.java)
+        val networkBlogs = retrofit.getLatestRates(API_KEY, BASE)
+        if (networkBlogs.isSuccessful) {
             val lastRequestTS = Instant.from(
                 DateTimeFormatter.RFC_1123_DATE_TIME.parse(
-                    response.headers().get("Date")
+                    networkBlogs.headers().get("Date")
                 )
             ).epochSecond
             currencyDb.currencyRatesDao().deleteAll()
-            for ((key, value) in response.body()!!.rates) {
+            for ((key, value) in networkBlogs.body()!!.rates) {
                 if (key != "USD") {
-                    currencyRate = CurrencyRatesDB(key, value, response.body()!!.timestamp, lastRequestTS)
+                    var currencyRate = CurrencyRatesCacheEntity(key, value, networkBlogs.body()!!.timestamp, lastRequestTS)
                     currencyDb.currencyRatesDao().insert(listOf(currencyRate))
                     currencyDb.currencyRatesDao().insert(listOf(currencyRate))
                 }
             }
-            Log.d(
-                "MainActivity",
-                "onCreate: ${response.body()?.timestamp.toString()} from retrofit"
-            )
-            Log.d("MainActivity", "onCreate: $lastRequestTS  from retrofit")
-
+            val cacheMapper : CacheMapper = CacheMapper()
+            val rates : Rates = cacheMapper.mapFromEntityList(currencyDb.currencyRatesDao().getCurrencyRates())
+            withContext(Dispatchers.Main) {
+                currencyRecyclerView.apply {
+                    layoutManager = LinearLayoutManager(this@MainActivity)
+                    adapter = CurrencyRecyclerAdapter(rates)
+                }
+            }
+        }
         }
     }
-}
+
+
+
 
 

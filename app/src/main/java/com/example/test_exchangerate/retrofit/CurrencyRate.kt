@@ -1,8 +1,8 @@
-package com.example.test_exchangerate.data.model
+package com.example.test_exchangerate.retrofit
+
 
 
 data class CurrencyRate(
-
     val base: String,
     val disclaimer: String,
     val license: String,

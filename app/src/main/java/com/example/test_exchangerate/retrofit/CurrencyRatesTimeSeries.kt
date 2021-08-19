@@ -1,4 +1,4 @@
-package com.example.test_exchangerate.data.model
+package com.example.test_exchangerate.retrofit
 
 import com.google.gson.annotations.SerializedName
 

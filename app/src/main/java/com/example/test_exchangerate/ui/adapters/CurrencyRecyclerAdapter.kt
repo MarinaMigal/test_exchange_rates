@@ -1,10 +1,8 @@
 package com.example.test_exchangerate.ui.adapters
 
-import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -12,10 +10,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.test_exchangerate.ChartActivity
 import com.example.test_exchangerate.R
-import com.example.test_exchangerate.data.model.CurrencyRate
-import kotlin.coroutines.coroutineContext
+import com.example.test_exchangerate.data.model.Rates
 
-class CurrencyRecyclerAdapter(private val currencyRates: CurrencyRate?) : RecyclerView.Adapter<CurrencyRecyclerAdapter.ViewHolder>() {
+
+class CurrencyRecyclerAdapter(private val currencyRates: Rates?) : RecyclerView.Adapter<CurrencyRecyclerAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view =LayoutInflater.from(parent.context).inflate(R.layout.currency_rate_layout, parent, false)
         return ViewHolder(view)

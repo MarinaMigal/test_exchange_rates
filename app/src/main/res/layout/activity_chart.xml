@@ -11,13 +11,11 @@
         android:id="@+id/container1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
         android:orientation="vertical"
         android:padding="10dp"
-        android:clickable="true"
-
-        tools:ignore="MissingConstraints"
-        android:focusable="true">
-
+        tools:ignore="MissingConstraints">
 
 
         <TextView
@@ -26,10 +24,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:fontFamily="sans-serif"
-            android:textColor="#000"
+            android:gravity="center_horizontal"
             android:textAlignment="center"
-            android:textSize="17sp"
-            android:gravity="center_horizontal" />
+            android:textColor="#000"
+            android:textSize="17sp" />
 
 
     </LinearLayout>

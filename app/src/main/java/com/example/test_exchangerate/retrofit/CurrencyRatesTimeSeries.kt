@@ -8,9 +8,9 @@ data class CurrencyRatesTimeSeries(
     @SerializedName("end_date")
     val endDate: String,
     @SerializedName("motd")
-    val motd: HashMap<String,String> = HashMap(),
-   @SerializedName("rates")
-    val rates: LinkedHashMap<String,Map<String,Double>> = LinkedHashMap(),
+    val motd: HashMap<String, String> = HashMap(),
+    @SerializedName("rates")
+    val rates: LinkedHashMap<String, Map<String, Double>> = LinkedHashMap(),
     @SerializedName("start_date")
     val startDate: String,
     @SerializedName("success")

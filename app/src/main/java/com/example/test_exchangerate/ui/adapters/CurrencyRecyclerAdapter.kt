@@ -13,9 +13,11 @@ import com.example.test_exchangerate.R
 import com.example.test_exchangerate.data.model.Rates
 
 
-class CurrencyRecyclerAdapter(private val currencyRates: Rates?) : RecyclerView.Adapter<CurrencyRecyclerAdapter.ViewHolder>() {
+class CurrencyRecyclerAdapter(private val currencyRates: Rates?) :
+    RecyclerView.Adapter<CurrencyRecyclerAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view =LayoutInflater.from(parent.context).inflate(R.layout.currency_rate_layout, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.currency_rate_layout, parent, false)
         return ViewHolder(view)
     }
 
@@ -24,13 +26,13 @@ class CurrencyRecyclerAdapter(private val currencyRates: Rates?) : RecyclerView.
         if (currencyRates != null) {
             var i = 0
             for ((key, value) in currencyRates.rates) {
-                if (position === i && key != "USD") {
+                if (position == i && key != "USD") {
                     holder.currency.text = key
                     holder.rate.text = String.format("%.2f", value)
                     holder.layout.setOnClickListener {
                         Log.d("ChartActivity", "onClick: clicked on: $key")
-                        val intent  = Intent(context, ChartActivity::class.java)
-                        intent.putExtra("currency",  holder.currency.text)
+                        val intent = Intent(context, ChartActivity::class.java)
+                        intent.putExtra("currency", holder.currency.text)
                         context.startActivity(intent)
                     }
                     break
@@ -41,13 +43,12 @@ class CurrencyRecyclerAdapter(private val currencyRates: Rates?) : RecyclerView.
     }
 
 
-
     override fun getItemCount(): Int = currencyRates?.rates?.size!!
 
-    class ViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView){
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val currency = itemView.findViewById<TextView>(R.id.currency)!!
         val rate = itemView.findViewById<TextView>(R.id.rate)!!
-        val layout  = itemView.findViewById<LinearLayout>(R.id.container1)!!
+        val layout = itemView.findViewById<LinearLayout>(R.id.container1)!!
     }
 
 

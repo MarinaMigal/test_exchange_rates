@@ -16,6 +16,6 @@ interface CurrencyRatesDAO {
     suspend fun getCurrencyRates(): List<CurrencyRatesCacheEntity?>?
 
     @Query("SELECT lastRequestTS FROM currency_rates LIMIT 1")
-    suspend fun getLastTimestamp():Long
+    suspend fun getLastTimestamp(): Long
 
 }

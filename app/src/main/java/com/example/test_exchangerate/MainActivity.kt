@@ -32,7 +32,6 @@ private const val BASE = "USD"
 class MainActivity : AppCompatActivity() {
 
 
-
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("DefaultLocale", "SimpleDateFormat")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,33 +42,47 @@ class MainActivity : AppCompatActivity() {
         val currencyDb = CurrencyRoomDatabase.getInstance(context)
 
         CoroutineScope(Dispatchers.IO).launch {
-            if(currencyDb.currencyRatesDao().getCurrencyRates().isNullOrEmpty() )
-            {
-                cacheNetworkData(currencyRecyclerView,currencyDb)
-            }else {
+            //If the database is empty - get data from api and cache it
+            if (currencyDb.currencyRatesDao().getCurrencyRates().isNullOrEmpty()) {
+                cacheNetworkData(currencyRecyclerView, currencyDb)
+                Log.d("MainActivity", "onCreate: retrofit")
+            } else {
+                //else get the timestamp of the last network request
                 val lastTimestamp = currencyDb.currencyRatesDao().getLastTimestamp()
+                //get the current timestamp
                 val currentTS = Instant.now().epochSecond
                 val diffTime: Long = (currentTS - lastTimestamp) / 60
-                Log.d("MainActivity", "onCreate: $lastTimestamp")
+                //if 10 min have not elapsed since the last request - get cached data from the database
                 if (diffTime < 10) {
                     val cachedRates = currencyDb.currencyRatesDao().getCurrencyRates()
-                    val cacheMapper : CacheMapper = CacheMapper()
+                    val cacheMapper: CacheMapper = CacheMapper()
                     val rates = cacheMapper.mapFromEntityList(cachedRates)
+                    //display cached data
                     withContext(Dispatchers.Main) {
                         currencyRecyclerView.apply {
                             layoutManager = LinearLayoutManager(this@MainActivity)
                             adapter = CurrencyRecyclerAdapter(rates)
                         }
                     }
-                    Log.d("MainActivity", "onCreate: $currentTS from room")
-                }else cacheNetworkData(currencyRecyclerView,currencyDb)
+                    Log.d("MainActivity", "onCreate: room")
+                } else {
+                    //else get data from api and cache it
+                    cacheNetworkData(currencyRecyclerView, currencyDb)
+                    Log.d("MainActivity", "onCreate: retrofit")
+                }
             }
 
         }
 
-     }
+    }
+
+    //get data from api, display it and cache it
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun cacheNetworkData(currencyRecyclerView:RecyclerView, currencyDb:CurrencyRoomDatabase) {
+    suspend fun cacheNetworkData(
+        currencyRecyclerView: RecyclerView,
+        currencyDb: CurrencyRoomDatabase
+    ) {
+        //get data from api
         val retrofit = ApiClient.buildService(CurrencyApiInterface::class.java)
         val networkBlogs = retrofit.getLatestRates(API_KEY, BASE)
         if (networkBlogs.isSuccessful) {
@@ -78,25 +91,36 @@ class MainActivity : AppCompatActivity() {
                     networkBlogs.headers().get("Date")
                 )
             ).epochSecond
-            currencyDb.currencyRatesDao().deleteAll()
-            for ((key, value) in networkBlogs.body()!!.rates) {
-                if (key != "USD") {
-                    var currencyRate = CurrencyRatesCacheEntity(key, value, networkBlogs.body()!!.timestamp, lastRequestTS)
-                    currencyDb.currencyRatesDao().insert(listOf(currencyRate))
-                    currencyDb.currencyRatesDao().insert(listOf(currencyRate))
-                }
-            }
-            val cacheMapper : CacheMapper = CacheMapper()
-            val rates : Rates = cacheMapper.mapFromEntityList(currencyDb.currencyRatesDao().getCurrencyRates())
+            //display currency rates
             withContext(Dispatchers.Main) {
                 currencyRecyclerView.apply {
                     layoutManager = LinearLayoutManager(this@MainActivity)
-                    adapter = CurrencyRecyclerAdapter(rates)
+                    adapter = CurrencyRecyclerAdapter(
+                        Rates(
+                            networkBlogs.body()!!.rates,
+                            networkBlogs.body()!!.timestamp,
+                            lastRequestTS
+                        )
+                    )
+                }
+            }
+            //cache data to local database
+            currencyDb.currencyRatesDao().deleteAll()
+            for ((key, value) in networkBlogs.body()!!.rates) {
+                if (key != "USD") {
+                    var currencyRate = CurrencyRatesCacheEntity(
+                        key,
+                        value,
+                        networkBlogs.body()!!.timestamp,
+                        lastRequestTS
+                    )
+                    currencyDb.currencyRatesDao().insert(listOf(currencyRate))
+                    currencyDb.currencyRatesDao().insert(listOf(currencyRate))
                 }
             }
         }
-        }
     }
+}
 
 
 
